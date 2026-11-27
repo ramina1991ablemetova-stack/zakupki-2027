@@ -21,4 +21,21 @@
     <div><dt>Отклонение</dt><dd id="budget-difference"></dd></div>
     <div><dt>Исполнение бюджета</dt><dd id="budget-execution"></dd></div>
   </dl>
+  <section id="budget-monthly" aria-labelledby="budget-monthly-title" hidden>
+    <h3 id="budget-monthly-title">План и факт по месяцам</h3>
+    <ul class="budget-legend" aria-label="Легенда диаграммы">
+      <li class="budget-plan-key">План</li>
+      <li class="budget-fact-key">Факт</li>
+    </ul>
+    <div class="budget-scroll" role="region" aria-label="Помесячная диаграмма" tabindex="0">
+      <div id="budget-chart" class="budget-chart"></div>
+    </div>
+    <div class="budget-scroll" role="region" aria-label="Помесячные суммы" tabindex="0">
+      <table class="budget-month-table">
+        <caption>Суммы по месяцам в тенге без НДС</caption>
+        <thead><tr><th scope="col">Месяц</th><th scope="col">План</th><th scope="col">Факт</th><th scope="col">Отклонение</th></tr></thead>
+        <tbody id="budget-month-rows"></tbody>
+      </table>
+    </div>
+  </section>
 </section></main><dialog id="mode-dialog" aria-labelledby="mode-title"><h2 id="mode-title">Выберите режим</h2><p>Просмотр доступен без кода. Для редактирования нужен код доступа.</p><div class="mode-actions"><button id="view-mode" type="button">Просмотр</button><button id="edit-mode" type="button">Редактирование</button></div><form id="access-form" hidden><label for="access-code">Код доступа</label><input id="access-code" type="password" inputmode="numeric" autocomplete="off"><label for="author-name">Имя автора</label><input id="author-name" type="text" autocomplete="name" maxlength="100"><p id="access-error" class="message" role="alert"></p><button type="submit">Войти</button></form><p class="mode-note">Защита демонстрационная и не предотвращает обход проверки.</p></dialog></body></html>

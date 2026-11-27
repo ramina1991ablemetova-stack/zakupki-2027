@@ -45,3 +45,20 @@
 .budget-summary div{padding:14px;background:#f2f8f7;border-radius:8px;overflow-wrap:anywhere}
 .budget-summary dt{color:#5c707b;font-size:.9rem}
 .budget-summary dd{margin:4px 0 0;font-size:1.25rem;font-weight:700}
+.budget-legend{display:flex;gap:20px;padding:0;list-style:none}
+.budget-legend li{display:flex;align-items:center;gap:8px}
+.budget-legend li::before{content:"";width:16px;height:16px}
+.budget-legend .budget-plan-key::before,.budget-bars .budget-plan-key{background:#087b73}
+.budget-legend .budget-fact-key::before,.budget-bars .budget-fact-key{
+  background:repeating-linear-gradient(135deg,#315d89 0 4px,#b8d5ef 4px 7px)
+}
+.budget-scroll{overflow-x:auto;margin-top:16px}
+.budget-scroll:focus-visible{outline:3px solid #85d6c7}
+.budget-chart{display:flex;gap:8px;width:max-content;min-width:100%}
+.budget-month{flex:1 0 76px;text-align:center;font-size:.85rem}
+.budget-bars{display:flex;justify-content:center;align-items:flex-end;gap:4px;height:160px;border-bottom:1px solid #aabdc1}
+.budget-bars span{width:20px}
+.budget-month-table{min-width:480px}
+.budget-month-table caption{text-align:left;padding-bottom:8px}
+.budget-month-table th,.budget-month-table td{min-width:0;text-align:right}
+.budget-month-table th:first-child{text-align:left}

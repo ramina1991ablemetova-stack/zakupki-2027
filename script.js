@@ -153,6 +153,7 @@ document.querySelector('#budget-reset').addEventListener('click',()=>{
 
 function renderBudget(){
   const summary=document.querySelector('#budget-summary');
+  const monthlySection=document.querySelector('#budget-monthly');
   const status=document.querySelector('#budget-status');
   let purchases;
   try{
@@ -161,19 +162,25 @@ function renderBudget(){
     );
   }catch{
     summary.hidden=true;
+    monthlySection.hidden=true;
     status.textContent='Данные бюджета недоступны. Не удалось прочитать сохранённые данные.';
     return;
   }
 
-  let plan=0n,fact=0n,hasMonthlyValues=false;
-  for(const row of purchases){
-    for(let month=budgetPeriod.start;month<=budgetPeriod.end;month++){
-      const planKey=`plan${month}`,factKey=`fact${month}`;
+  let hasMonthlyValues=false;
+  const monthly=[];
+  for(let month=budgetPeriod.start;month<=budgetPeriod.end;month++){
+    const planKey=`plan${month}`,factKey=`fact${month}`;
+    let plan=0n,fact=0n;
+    for(const row of purchases){
       plan+=amount(row,planKey);
       fact+=amount(row,factKey);
       if(row[planKey]||row[factKey])hasMonthlyValues=true;
     }
+    monthly.push({label:months[month],plan,fact});
   }
+  const plan=monthly.reduce((sum,month)=>sum+month.plan,0n);
+  const fact=monthly.reduce((sum,month)=>sum+month.fact,0n);
   status.textContent='';
   if(!purchases.length)status.textContent='За выбранный период закупок нет';
   else if(!hasMonthlyValues)status.textContent='За выбранный период нет сумм плана и факта';
@@ -183,6 +190,49 @@ function renderBudget(){
   document.querySelector('#budget-difference').textContent=formatMoney(fact-plan)+' ₸';
   document.querySelector('#budget-execution').textContent=percent(fact,plan).replace(/^\+/,'');
   summary.hidden=false;
+  renderBudgetMonths(monthly);
+  monthlySection.hidden=false;
+}
+
+function renderBudgetMonths(monthly){
+  const chart=document.querySelector('#budget-chart');
+  const body=document.querySelector('#budget-month-rows');
+  let maximum=0n;
+  for(const {plan,fact} of monthly){
+    if(plan>maximum)maximum=plan;
+    if(fact>maximum)maximum=fact;
+  }
+  chart.replaceChildren();
+  body.replaceChildren();
+
+  for(const {label,plan,fact} of monthly){
+    const group=document.createElement('div');
+    group.className='budget-month';
+    const bars=document.createElement('div');
+    bars.className='budget-bars';
+    const monthLabel=document.createElement('span');
+    monthLabel.textContent=label;
+    bars.setAttribute('role','img');
+    bars.setAttribute('aria-label',`План ${formatMoney(plan)} ₸, факт ${formatMoney(fact)} ₸`);
+    for(const [series,value] of [['plan',plan],['fact',fact]]){
+      const bar=document.createElement('span');
+      bar.className=`budget-${series}-key`;
+      const height=maximum===0n?0:Number(value*10000n/maximum)/100;
+      bar.style.height=`${height}%`;
+      bars.append(bar);
+    }
+    group.append(bars,monthLabel);
+    chart.append(group);
+
+    const row=body.insertRow();
+    const heading=document.createElement('th');
+    heading.scope='row';
+    heading.textContent=label;
+    row.append(heading);
+    for(const value of [plan,fact,fact-plan]){
+      row.insertCell().textContent=formatMoney(value)+' ₸';
+    }
+  }
 }
 
 try{rows=readSavedRows();}catch{readable=false;message.textContent='Не удалось прочитать сохранённые данные. Сохранение отключено, чтобы не перезаписать их.';}
