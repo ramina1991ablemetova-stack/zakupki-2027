@@ -9,3 +9,15 @@
 .mode-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.mode-controls button{margin:0}button:disabled{opacity:.55;cursor:not-allowed}input[readonly]{background:#f6f9f9}.mode-actions{display:flex;gap:10px;flex-wrap:wrap}.mode-actions button{margin-top:0}dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);overflow:auto;border:1px solid #dde6e7;border-radius:14px;padding:24px;color:#182b3a;box-shadow:0 8px 36px #203d4540}dialog::backdrop{background:#102b38a8}dialog h2{margin-bottom:8px}#access-form{margin-top:16px}.mode-note{font-size:.85rem;color:#5c707b;margin:18px 0 0}
 .detail-field{font-size:12px;font-weight:700;min-width:0}.detail-field input{display:block;font-size:14px;margin-top:4px}.input-wrap{min-width:0;width:100%}input.changed-cell,input.changed-cell[readonly]{background:#fff3a6}.change-info{font-size:12px;text-align:left;color:#182b3a}.change-info summary{cursor:pointer;min-height:44px;display:flex;align-items:center;text-decoration:underline;color:#684d00}.change-info summary:focus-visible{outline:3px solid #85d6c7}.change-info span{display:block;padding:6px;background:#fff9dc;overflow-wrap:anywhere}.history-panel{margin:24px 12px}.history-panel ol{padding-left:24px}.history-panel li{margin-bottom:12px;overflow-wrap:anywhere}.history-panel p{margin:0 0 4px}.history-old,.history-new{display:inline-block;padding:4px 8px;margin:2px;border-radius:4px}.history-old{background:#e0e0e0;color:#222}.history-new{background:#fff3a6;color:#222}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tabs button{margin:0}.tabs button[aria-pressed="false"]{background:#e7f4f1;color:#075f59}.history-panel{padding:20px;margin:0}.history-filters{display:flex;gap:12px;flex-wrap:wrap}.history-filters label{flex:1 1 200px}.history-table-wrap{overflow-x:auto}.history-table{min-width:760px}.history-table td.history-old,.history-table td.history-new{display:table-cell;margin:0;padding:12px;border-radius:0}.monthly-table input.changed-cell{height:44px}
+.panel.budget-panel{padding:24px}
+.budget-panel h2{margin-bottom:4px}
+#budget-status:empty{display:none}
+.budget-summary{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));
+  gap:12px;
+  margin:0;
+}
+.budget-summary div{padding:14px;background:#f2f8f7;border-radius:8px;overflow-wrap:anywhere}
+.budget-summary dt{color:#5c707b;font-size:.9rem}
+.budget-summary dd{margin:4px 0 0;font-size:1.25rem;font-weight:700}

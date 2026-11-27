@@ -62,7 +62,10 @@ function shownValue(value,money){return value===''?'Пусто':money?formatMone
 function historyInfo(entry){return `Автор: ${entry.author}; дата и время: ${new Date(entry.time).toLocaleString('ru-RU')}; прежнее значение: ${shownValue(entry.old,entry.money)}`;}
 function updateMarker(wrapper,row,key){const input=wrapper.querySelector('input');input.classList.toggle('changed-cell',(row.history||[]).some(item=>item.key===key));}
 function renderHistory(){const root=document.querySelector('#history-list'),dateFilter=document.querySelector('#history-date').value,search=document.querySelector('#history-search').value.trim().toLocaleLowerCase('ru-RU');root.replaceChildren();const entries=rows.flatMap(row=>(row.history||[])).sort((a,b)=>b.time.localeCompare(a.time)).filter(entry=>{const d=new Date(entry.time),local=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');return(!dateFilter||local===dateFilter)&&(!search||entry.purchase.toLocaleLowerCase('ru-RU').includes(search));});document.querySelector('#history-empty').hidden=entries.length>0;entries.forEach(entry=>{const item=document.createElement('tr'),d=new Date(entry.time),values=[d.toLocaleDateString('ru-RU'),d.toLocaleTimeString('ru-RU'),entry.author,entry.purchase,entry.label,shownValue(entry.old,entry.money),shownValue(entry.new,entry.money)];values.forEach((value,i)=>{const cell=document.createElement('td');cell.textContent=value;if(i===5)cell.className='history-old';if(i===6)cell.className='history-new';item.append(cell);});root.append(item);});}
-function addEmptyRows(){for(const section of Object.keys(sections))if(!rows.some(row=>row.section===section&&columns.every(([key])=>!row[key])&&monthKeys.every(key=>!row[key])&&!row.amount&&!row.need))rows.push({section});}
+function isEmptyPurchase(row){
+  return columns.every(([key])=>!row[key])&&monthKeys.every(key=>!row[key])&&!row.amount&&!row.need;
+}
+function addEmptyRows(){for(const section of Object.keys(sections))if(!rows.some(row=>row.section===section&&isEmptyPurchase(row)))rows.push({section});}
 function updateTotal(){const sum=rows.reduce((n,row)=>n+(typeof row.amount==='string'&&/^\d+$/.test(row.amount)?BigInt(row.amount):0n),0n);document.querySelector('#total').textContent=`${formatMoney(sum)} ₸`;}
 function makeInput(row,key,label,section,money=false){
   const wrapper=document.createElement('div');wrapper.className='input-wrap';const input=document.createElement('input');input.type='text';input.autocomplete='off';input.readOnly=mode!=='edit';input.setAttribute('aria-label',label);if(money)input.inputMode='decimal';input.value=money&&row[key]?formatMoney(row[key])+' ₸':row[key]||'';wrapper.append(input);updateMarker(wrapper,row,key);
@@ -100,7 +103,46 @@ function refresh(section){
   months.forEach((month,i)=>{const plan=list.reduce((sum,row)=>sum+amount(row,'plan'+i),0n),fact=list.reduce((sum,row)=>sum+amount(row,'fact'+i),0n);addPercent(`${month}: отклонение, %`,fact-plan,plan,true);});
   addPercent('Освоение договоров, %',list.reduce((sum,row)=>sum+calculated(row,'totalFact'),0n),list.reduce((sum,row)=>sum+amount(row,'contractAmount'),0n));
 }
-try{const saved=JSON.parse(localStorage.getItem(storageKey)||'[]');if(!Array.isArray(saved)||!saved.every(row=>row&&typeof row==='object'&&!Array.isArray(row)&&(row.section===undefined||Object.hasOwn(sections,row.section))&&columns.every(([key])=>row[key]===undefined||typeof row[key]==='string')&&['contractAmount','deviation'].every(key=>!row[key]||/^-?\d+$/.test(row[key]))&&(row.amount===undefined||(typeof row.amount==='string'&&/^\d+$/.test(row.amount)))&&monthKeys.every(key=>row[key]===undefined||row[key]===''||(typeof row[key]==='string'&&/^\d+$/.test(row[key])))))throw new Error('Invalid data');rows=saved.map(row=>({...row,section:row.section||'priority'}));}catch{readable=false;message.textContent='Не удалось прочитать сохранённые данные. Сохранение отключено, чтобы не перезаписать их.';}
+function readSavedRows(){
+  const saved=JSON.parse(localStorage.getItem(storageKey)||'[]');
+  if(!Array.isArray(saved)||!saved.every(row=>
+    row&&typeof row==='object'&&!Array.isArray(row)&&
+    (row.section===undefined||Object.hasOwn(sections,row.section))&&
+    columns.every(([key])=>row[key]===undefined||typeof row[key]==='string')&&
+    ['contractAmount','deviation'].every(key=>!row[key]||/^-?\d+$/.test(row[key]))&&
+    (row.amount===undefined||(typeof row.amount==='string'&&/^\d+$/.test(row.amount)))&&
+    monthKeys.every(key=>row[key]===undefined||row[key]===''||(typeof row[key]==='string'&&/^\d+$/.test(row[key])))
+  ))throw new Error('Invalid data');
+  return saved.map(row=>({...row,section:row.section||'priority'}));
+}
+
+function renderBudget(){
+  const summary=document.querySelector('#budget-summary');
+  const status=document.querySelector('#budget-status');
+  let purchases;
+  try{
+    purchases=readSavedRows().filter(row=>!isEmptyPurchase(row));
+  }catch{
+    summary.hidden=true;
+    status.textContent='Данные бюджета недоступны. Не удалось прочитать сохранённые данные.';
+    return;
+  }
+
+  const plan=purchases.reduce((sum,row)=>sum+calculated(row,'totalPlan'),0n);
+  const fact=purchases.reduce((sum,row)=>sum+calculated(row,'totalFact'),0n);
+  const hasMonthlyValues=purchases.some(row=>monthKeys.some(key=>row[key]));
+  status.textContent='';
+  if(!purchases.length)status.textContent='За выбранный период закупок нет';
+  else if(!hasMonthlyValues)status.textContent='За выбранный период нет сумм плана и факта';
+
+  document.querySelector('#budget-plan').textContent=formatMoney(plan)+' ₸';
+  document.querySelector('#budget-fact').textContent=formatMoney(fact)+' ₸';
+  document.querySelector('#budget-difference').textContent=formatMoney(fact-plan)+' ₸';
+  document.querySelector('#budget-execution').textContent=percent(fact,plan).replace(/^\+/,'');
+  summary.hidden=false;
+}
+
+try{rows=readSavedRows();}catch{readable=false;message.textContent='Не удалось прочитать сохранённые данные. Сохранение отключено, чтобы не перезаписать их.';}
 addEmptyRows();updateTotal();Object.keys(sections).forEach(section=>{
   const container=document.querySelector(`#${section}-table`);
   const button=document.createElement('button');button.type='button';button.className='add-purchase';button.textContent='+ Добавить закупку';
@@ -109,7 +151,15 @@ addEmptyRows();updateTotal();Object.keys(sections).forEach(section=>{
 });
 renderHistory();
 document.querySelector('#history-date').addEventListener('input',renderHistory);document.querySelector('#history-search').addEventListener('input',renderHistory);
-document.querySelectorAll('.tabs button').forEach(button=>button.addEventListener('click',()=>{const history=button.id==='tab-history';document.querySelector('#history-panel').hidden=!history;document.querySelector('#schedule-panel').hidden=history;document.querySelector('#tab-history').setAttribute('aria-pressed',String(history));document.querySelector('#tab-schedule').setAttribute('aria-pressed',String(!history));}));
+const tabs=document.querySelectorAll('.tabs button');
+tabs.forEach(button=>button.addEventListener('click',()=>{
+  tabs.forEach(tab=>{
+    const active=tab===button;
+    tab.setAttribute('aria-pressed',String(active));
+    document.getElementById(tab.getAttribute('aria-controls')).hidden=!active;
+  });
+  if(button.id==='tab-budget')renderBudget();
+}));
 const modeDialog=document.querySelector('#mode-dialog'),accessForm=document.querySelector('#access-form'),accessCode=document.querySelector('#access-code'),accessError=document.querySelector('#access-error'),switchButton=document.querySelector('#switch-mode');
 function setMode(next){mode=next;document.querySelector('#current-mode').textContent=next==='edit'?'Режим: редактирование':'Режим: просмотр';switchButton.hidden=false;document.querySelectorAll('.purchase-card input').forEach(input=>{input.readOnly=next!=='edit';});document.querySelectorAll('.add-purchase').forEach(button=>{button.disabled=next!=='edit';});accessCode.value='';accessError.textContent='';modeDialog.close();}
 function openModeDialog(){accessForm.hidden=true;accessCode.value='';accessError.textContent='';modeDialog.showModal();}
