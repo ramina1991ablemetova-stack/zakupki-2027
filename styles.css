@@ -11,6 +11,30 @@
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tabs button{margin:0}.tabs button[aria-pressed="false"]{background:#e7f4f1;color:#075f59}.history-panel{padding:20px;margin:0}.history-filters{display:flex;gap:12px;flex-wrap:wrap}.history-filters label{flex:1 1 200px}.history-table-wrap{overflow-x:auto}.history-table{min-width:760px}.history-table td.history-old,.history-table td.history-new{display:table-cell;margin:0;padding:12px;border-radius:0}.monthly-table input.changed-cell{height:44px}
 .panel.budget-panel{padding:24px}
 .budget-panel h2{margin-bottom:4px}
+.budget-filters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));
+  align-items:end;
+  gap:12px;
+  margin-bottom:16px;
+}
+.budget-filters label,.budget-filters button{margin:0}
+.budget-filters select{
+  display:block;
+  width:100%;
+  min-height:44px;
+  margin-top:4px;
+  padding:8px;
+  border:1px solid #aabdc1;
+  border-radius:7px;
+  background:white;
+  color:#182b3a;
+  font:inherit;
+}
+.budget-filters select:focus-visible{outline:3px solid #85d6c7;outline-offset:2px}
+.budget-filters select[aria-invalid="true"]{border-color:#ad3434}
+.budget-period-error{color:#a32626}
+.budget-period-error:empty{display:none}
 #budget-status:empty{display:none}
 .budget-summary{
   display:grid;

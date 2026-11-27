@@ -1,6 +1,19 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Сетевой график закупок</title><link rel="stylesheet" href="styles.css"><script src="script.js" defer></script></head><body><main class="container"><header><p class="eyebrow">Планирование закупок</p><h1>Сетевой график закупок</h1><p class="intro">Введите сведения в ячейки. Изменения сохраняются автоматически.</p><div class="mode-controls"><span id="current-mode">Режим не выбран</span><button id="switch-mode" type="button" hidden>Переключить режим</button></div></header><nav class="tabs" aria-label="Разделы приложения"><button type="button" id="tab-schedule" aria-controls="schedule-panel" aria-pressed="true">График закупок</button><button type="button" id="tab-history" aria-controls="history-panel" aria-pressed="false">История изменений</button><button type="button" id="tab-budget" aria-controls="budget-panel" aria-pressed="false">Исполнение бюджета</button></nav><section id="schedule-panel" class="panel"><button id="export-excel" type="button">Экспорт в Excel</button><div class="section-heading"><div><h2>Закупки</h2><p class="intro">План и факт по месяцам 2027 года; суммы указаны в тенге без НДС.</p></div><div class="total"><span>Общая сумма без НДС</span><strong id="total">0,00 ₸</strong><small>По суммам закупок предыдущей версии</small></div></div><p id="message" class="message" role="alert"></p><section class="schedule-section"><h3>Первоочередные закупки</h3><div id="priority-table"></div></section><section class="schedule-section"><h3>Непервоочередные закупки</h3><div id="regular-table"></div></section></section><section id="history-panel" class="panel history-panel" aria-labelledby="history-title" hidden><h3 id="history-title">Журнал изменений</h3><div class="history-filters"><label>Дата <input id="history-date" type="date"></label><label>Название закупки <input id="history-search" type="search"></label></div><p id="history-empty" hidden>Изменений не найдено.</p><div class="history-table-wrap"><table class="history-table"><thead><tr><th>Дата</th><th>Время</th><th>Автор</th><th>Закупка</th><th>Поле</th><th>Было</th><th>Стало</th></tr></thead><tbody id="history-list"></tbody></table></div></section><section id="budget-panel" class="panel budget-panel" aria-labelledby="budget-title" hidden>
   <h2 id="budget-title">Исполнение бюджета за 2027 год</h2>
   <p class="intro">Оба раздела закупок. Суммы в тенге без НДС.</p>
+  <form id="budget-filters" class="budget-filters" aria-label="Фильтры исполнения бюджета" autocomplete="off">
+    <label>Раздел
+      <select id="budget-section"><option value="">Оба раздела</option></select>
+    </label>
+    <label>Начальный месяц
+      <select id="budget-start" aria-describedby="budget-period-error"></select>
+    </label>
+    <label>Конечный месяц
+      <select id="budget-end" aria-describedby="budget-period-error"></select>
+    </label>
+    <button type="button" id="budget-reset" class="secondary">Сбросить</button>
+  </form>
+  <p id="budget-period-error" class="budget-period-error" role="status"></p>
   <p id="budget-status" role="status"></p>
   <dl id="budget-summary" class="budget-summary" hidden>
     <div><dt>План</dt><dd id="budget-plan"></dd></div>

@@ -116,21 +116,64 @@ function readSavedRows(){
   return saved.map(row=>({...row,section:row.section||'priority'}));
 }
 
+const budgetFilters=document.querySelector('#budget-filters');
+const budgetSection=document.querySelector('#budget-section');
+const budgetStart=document.querySelector('#budget-start');
+const budgetEnd=document.querySelector('#budget-end');
+const budgetPeriodError=document.querySelector('#budget-period-error');
+let budgetPeriod={start:0,end:months.length-1};
+
+Object.entries(sections).forEach(([value,label])=>budgetSection.add(new Option(label,value)));
+months.forEach((month,index)=>{
+  budgetStart.add(new Option(month,index,index===0));
+  budgetEnd.add(new Option(month,index,index===months.length-1));
+});
+budgetFilters.reset();
+
+function updateBudgetPeriod(){
+  const start=Number(budgetStart.value),end=Number(budgetEnd.value);
+  const invalid=start>end;
+  budgetStart.setAttribute('aria-invalid',String(invalid));
+  budgetEnd.setAttribute('aria-invalid',String(invalid));
+  budgetPeriodError.textContent=invalid
+    ?`Начальный месяц не может быть позже конечного. Применённый период: ${months[budgetPeriod.start]} — ${months[budgetPeriod.end]}.`
+    :'';
+  if(invalid)return;
+  budgetPeriod={start,end};
+  renderBudget();
+}
+
+budgetSection.addEventListener('change',renderBudget);
+budgetStart.addEventListener('change',updateBudgetPeriod);
+budgetEnd.addEventListener('change',updateBudgetPeriod);
+document.querySelector('#budget-reset').addEventListener('click',()=>{
+  budgetFilters.reset();
+  updateBudgetPeriod();
+});
+
 function renderBudget(){
   const summary=document.querySelector('#budget-summary');
   const status=document.querySelector('#budget-status');
   let purchases;
   try{
-    purchases=readSavedRows().filter(row=>!isEmptyPurchase(row));
+    purchases=readSavedRows().filter(row=>
+      (!budgetSection.value||row.section===budgetSection.value)&&!isEmptyPurchase(row)
+    );
   }catch{
     summary.hidden=true;
     status.textContent='Данные бюджета недоступны. Не удалось прочитать сохранённые данные.';
     return;
   }
 
-  const plan=purchases.reduce((sum,row)=>sum+calculated(row,'totalPlan'),0n);
-  const fact=purchases.reduce((sum,row)=>sum+calculated(row,'totalFact'),0n);
-  const hasMonthlyValues=purchases.some(row=>monthKeys.some(key=>row[key]));
+  let plan=0n,fact=0n,hasMonthlyValues=false;
+  for(const row of purchases){
+    for(let month=budgetPeriod.start;month<=budgetPeriod.end;month++){
+      const planKey=`plan${month}`,factKey=`fact${month}`;
+      plan+=amount(row,planKey);
+      fact+=amount(row,factKey);
+      if(row[planKey]||row[factKey])hasMonthlyValues=true;
+    }
+  }
   status.textContent='';
   if(!purchases.length)status.textContent='За выбранный период закупок нет';
   else if(!hasMonthlyValues)status.textContent='За выбранный период нет сумм плана и факта';
